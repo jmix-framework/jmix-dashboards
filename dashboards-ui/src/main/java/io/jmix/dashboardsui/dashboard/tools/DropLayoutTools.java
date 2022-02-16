@@ -16,6 +16,7 @@
 
 package io.jmix.dashboardsui.dashboard.tools;
 
+import io.jmix.core.Messages;
 import io.jmix.core.Metadata;
 import io.jmix.dashboards.model.DashboardModel;
 import io.jmix.dashboards.model.Widget;
@@ -29,6 +30,7 @@ import io.jmix.dashboardsui.screen.dashboard.editor.css.CssLayoutCreationDialog;
 import io.jmix.dashboardsui.screen.dashboard.editor.grid.GridCreationDialog;
 import io.jmix.dashboardsui.screen.dashboard.editor.responsive.ResponsiveCreationDialog;
 import io.jmix.dashboardsui.screen.widget.WidgetEdit;
+import io.jmix.ui.Notifications;
 import io.jmix.ui.ScreenBuilders;
 import io.jmix.ui.UiEventPublisher;
 import io.jmix.ui.component.Frame;
@@ -37,6 +39,7 @@ import io.jmix.ui.model.InstanceContainer;
 import io.jmix.ui.screen.OpenMode;
 import io.jmix.ui.screen.Screen;
 import io.jmix.ui.screen.StandardCloseAction;
+import io.jmix.ui.screen.UiControllerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -58,6 +61,8 @@ public class DropLayoutTools {
     private UiEventPublisher uiEventPublisher;
     @Autowired
     private ScreenBuilders screenBuilders;
+    @Autowired
+    private Messages messages;
 
     @Autowired
     private DashboardLayoutManager layoutManager;
@@ -175,7 +180,16 @@ public class DropLayoutTools {
             switch (location) {
                 case MIDDLE:
                 case CENTER:
-                    addChild(target, layout);
+                    if (target instanceof GridLayout) {
+                        UiControllerUtils.getScreenContext(dashboardEdit).getNotifications()
+                                .create(Notifications.NotificationType.WARNING)
+                                .withCaption(messages.getMessage(getClass(), "gridLayout.dropItems.warningMessage"))
+                                .show();
+                        // attach to the previous parent
+                        addChild(parent, layout);
+                    } else {
+                        addChild(target, layout);
+                    }
                     break;
                 case BOTTOM:
                 case RIGHT:
